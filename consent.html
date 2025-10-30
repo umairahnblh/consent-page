@@ -3,46 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trust Clinic - Consent Confirmation</title>
+  <title>Trust Clinic - Consent Confirmation (Demo)</title>
   <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
   />
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .card {
+      border-radius: 16px;
+      border: none;
+    }
+    .btn {
+      width: 45%;
+      font-weight: 500;
+    }
+    footer {
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: #888;
+    }
+  </style>
 </head>
-<body class="bg-light d-flex align-items-center justify-content-center vh-100">
-  <div class="card shadow p-4 text-center" style="width: 400px;">
+<body class="d-flex align-items-center justify-content-center vh-100">
+  <div class="card shadow-lg p-4 text-center" style="max-width: 420px;">
     <img
       src="https://qpyqhdwxphskmjbespbu.supabase.co/storage/v1/object/public/logo/logo.png"
       class="mb-3"
       width="120"
       alt="Trust Clinic Logo"
     />
-    <h4 class="mb-2">Consent Confirmation</h4>
-    <p id="message">Loading patient info...</p>
+    <h4 class="mb-2 text-primary">Consent Confirmation</h4>
+    <p class="text-muted mb-3">Trust Clinic – Patient Recording Consent</p>
 
-    <div id="buttons" style="display:none;">
-      <button class="btn btn-success me-2" onclick="sendConsent('approved')">
-        Approve
-      </button>
-      <button class="btn btn-danger" onclick="sendConsent('declined')">
-        Decline
-      </button>
+    <div id="content">
+      <p id="message" class="mb-4">Loading patient information...</p>
+      <div id="buttons" style="display:none;">
+        <button class="btn btn-success me-2" onclick="sendConsent('approved')">
+          ✅ Approve
+        </button>
+        <button class="btn btn-danger" onclick="sendConsent('declined')">
+          ❌ Decline
+        </button>
+      </div>
     </div>
+
+    <footer>Demo version – Trust Clinic Consent Portal</footer>
   </div>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const patientId = urlParams.get("id");
+    const patientName = urlParams.get("name"); // change "id" to "name"
     const messageEl = document.getElementById("message");
     const buttonsEl = document.getElementById("buttons");
 
-    // Check if ID exists
-    if (!patientId) {
-      messageEl.innerText = "Invalid or missing patient ID in URL.";
+    // Check if patient name exists
+    if (!patientName) {
+      messageEl.innerHTML = `
+        <span class="text-danger fw-semibold">
+          Invalid or missing patient information.
+        </span><br>
+        Please ensure the link includes a valid patient name, e.g.:<br>
+        <code>?name=John%20Doe</code>
+      `;
     } else {
       messageEl.innerHTML = `
-        <b>Patient ID:</b> ${patientId}<br>
-        Please review and confirm your consent below.
+        <strong>Dear ${decodeURIComponent(patientName)},</strong><br><br>
+        As part of our consultation process, we kindly request your consent to record
+        the session for documentation and quality assurance purposes.<br><br>
+        Please note: <b>Only video is temporarily stored</b> for review, and 
+        <b>audio will be permanently deleted</b> after processing.<br><br>
+        Do you consent to the recording of your session?
       `;
       buttonsEl.style.display = "block";
     }
@@ -53,19 +87,20 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            patient_id: patientId,
+            patient_name: patientName,
             consent_answer: status
           })
         });
 
         if (response.ok) {
-          document.querySelector(".card").innerHTML = `
-            <h4>Thank you!</h4>
+          document.getElementById("content").innerHTML = `
+            <h4 class="mb-3">Thank you, ${decodeURIComponent(patientName)}!</h4>
             <p>Your consent has been recorded as: 
               <b class="${status === "approved" ? "text-success" : "text-danger"}">
                 ${status.toUpperCase()}
               </b>
             </p>
+            <p class="text-muted">This confirmation is part of a demo version for Trust Clinic.</p>
           `;
         } else {
           throw new Error("Failed to submit consent.");
@@ -78,4 +113,3 @@
   </script>
 </body>
 </html>
-
